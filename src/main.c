@@ -3,8 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-size_t read_buffered(FILE* fp);
+typedef enum {
+    MODE_BYTE,
+    MODE_LINE,
+    MODE_WORD,
+    MODE_COUNT,
+} Mode;
+
+size_t count_by_byte(FILE* fp);
 size_t read_byte_for_byte(FILE* fp);
+size_t count_by_line(FILE* fp);
 int print_usage(void);
 
 int main(int argc, char** argv)
@@ -13,7 +21,14 @@ int main(int argc, char** argv)
         return print_usage();
     }
 
-    if (strncmp(argv[1], "-c", strlen("-c")) != 0) {
+    Mode mode;
+    if (strncmp(argv[1], "-c", strlen("-c")) == 0) {
+        mode = MODE_BYTE;
+    } else if (strncmp(argv[1], "-l", strlen("-l")) == 0) {
+        mode = MODE_LINE;
+    } else if (strncmp(argv[1], "-w", strlen("-w")) == 0) {
+        mode = MODE_WORD;
+    } else {
         return print_usage();
     }
 
@@ -25,18 +40,29 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    printf("\t%zu %s\n", read_buffered(fp), fname);
+    switch (mode) {
+    case MODE_BYTE: {
+        printf("\t%zu %s\n", count_by_byte(fp), fname);
+    } break;
 
-    rewind(fp);
+    case MODE_LINE: {
+        printf("\t%zu %s\n", count_by_line(fp), fname);
+    } break;
 
-    printf("\t%zu %s\n", read_byte_for_byte(fp), fname);
+    case MODE_WORD: {
+        // printf("\t%zu %s\n", read_buffered(fp), fname);
+    } break;
+
+    default:
+        break;
+    }
 
     fclose(fp);
 
     return EXIT_SUCCESS;
 }
 
-size_t read_buffered(FILE* fp)
+size_t count_by_byte(FILE* fp)
 {
     size_t chunk_size = 1024;
     unsigned char* buf = (unsigned char*)malloc(chunk_size);
@@ -57,6 +83,27 @@ size_t read_buffered(FILE* fp)
     free(buf);
 
     return tot_bytes;
+}
+
+size_t count_by_line(FILE* fp)
+{
+    size_t chunk_size = 1024;
+    char* buf = (char*)malloc(chunk_size);
+    if (!buf) {
+        perror("Failed to allocate memory");
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    size_t n_read, tot_lines = 0;
+
+    while (fgets(buf, chunk_size, fp)) {
+        tot_lines++;
+    }
+
+    free(buf);
+
+    return tot_lines;
 }
 
 size_t read_byte_for_byte(FILE* fp)
