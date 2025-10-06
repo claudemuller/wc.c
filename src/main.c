@@ -8,6 +8,7 @@ typedef enum {
     MODE_BYTE,
     MODE_LINE,
     MODE_WORD,
+    MODE_CHAR,
     MODE_COUNT,
 } Mode;
 
@@ -15,6 +16,7 @@ size_t count_by_byte(FILE* fp);
 size_t read_byte_for_byte(FILE* fp);
 size_t count_by_line(FILE* fp);
 size_t count_by_word(FILE* fp);
+size_t count_by_char(FILE* fp);
 int print_usage(void);
 
 int main(int argc, char** argv)
@@ -30,6 +32,8 @@ int main(int argc, char** argv)
         mode = MODE_LINE;
     } else if (strncmp(argv[1], "-w", strlen("-w")) == 0) {
         mode = MODE_WORD;
+    } else if (strncmp(argv[1], "-m", strlen("-m")) == 0) {
+        mode = MODE_CHAR;
     } else {
         return print_usage();
     }
@@ -55,8 +59,14 @@ int main(int argc, char** argv)
         printf("\t%zu %s\n", count_by_word(fp), fname);
     } break;
 
-    default:
-        break;
+    case MODE_CHAR: {
+        printf("\t%zu %s\n", count_by_char(fp), fname);
+    } break;
+
+    default: {
+        printf("Unsupported flag.\n");
+        return print_usage();
+    } break;
     }
 
     fclose(fp);
@@ -133,6 +143,29 @@ size_t count_by_word(FILE* fp)
     return tot_words;
 }
 
+// TODO: confirm output with wc
+size_t count_by_char(FILE* fp)
+{
+    size_t chunk_size = 1024;
+    char* buf = (char*)malloc(chunk_size);
+    if (!buf) {
+        perror("Failed to allocate memory");
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    size_t n_read, tot_chars = 0;
+    char c;
+
+    while ((c = fgetc(fp)) != EOF) {
+        tot_chars++;
+    }
+
+    free(buf);
+
+    return tot_chars;
+}
+
 size_t read_byte_for_byte(FILE* fp)
 {
     size_t tot_bytes = 0;
@@ -149,5 +182,5 @@ size_t read_byte_for_byte(FILE* fp)
 int print_usage(void)
 {
     printf("usage: wc -c <file>\n");
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
