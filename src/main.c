@@ -5,6 +5,7 @@
 #include <string.h>
 
 typedef enum {
+    MODE_DEFAULT,
     MODE_BYTE,
     MODE_LINE,
     MODE_WORD,
@@ -21,24 +22,37 @@ int print_usage(void);
 
 int main(int argc, char** argv)
 {
-    if (argc < 3) {
+    if (argc < 2) {
         return print_usage();
     }
 
+    const char* fname;
     Mode mode;
-    if (strncmp(argv[1], "-c", strlen("-c")) == 0) {
-        mode = MODE_BYTE;
-    } else if (strncmp(argv[1], "-l", strlen("-l")) == 0) {
-        mode = MODE_LINE;
-    } else if (strncmp(argv[1], "-w", strlen("-w")) == 0) {
-        mode = MODE_WORD;
-    } else if (strncmp(argv[1], "-m", strlen("-m")) == 0) {
-        mode = MODE_CHAR;
-    } else {
-        return print_usage();
-    }
 
-    const char* fname = argv[2];
+    if (argc == 2) {
+        fname = argv[1];
+
+        if (fname[0] == '-' && strlen(fname) == 2) {
+            fprintf(stderr, "Invalid filename.\n");
+            return print_usage();
+        }
+
+        mode = MODE_DEFAULT;
+    } else {
+        fname = argv[2];
+
+        if (strncmp(argv[1], "-c", strlen("-c")) == 0) {
+            mode = MODE_BYTE;
+        } else if (strncmp(argv[1], "-l", strlen("-l")) == 0) {
+            mode = MODE_LINE;
+        } else if (strncmp(argv[1], "-w", strlen("-w")) == 0) {
+            mode = MODE_WORD;
+        } else if (strncmp(argv[1], "-m", strlen("-m")) == 0) {
+            mode = MODE_CHAR;
+        } else {
+            return print_usage();
+        }
+    }
 
     FILE* fp = fopen(fname, "rb");
     if (!fp) {
@@ -64,8 +78,9 @@ int main(int argc, char** argv)
     } break;
 
     default: {
-        printf("Unsupported flag.\n");
-        return print_usage();
+        printf("\t%zu %s\n", count_by_byte(fp), fname);
+        printf("\t%zu %s\n", count_by_line(fp), fname);
+        printf("\t%zu %s\n", count_by_word(fp), fname);
     } break;
     }
 
@@ -181,6 +196,12 @@ size_t read_byte_for_byte(FILE* fp)
 
 int print_usage(void)
 {
-    printf("usage: wc -c <file>\n");
+    printf("usage: wc [mode] <file>\n");
+    printf("\tModes:\n");
+    printf("\t\t-c number of bytes\n");
+    printf("\t\t-l number of lines\n");
+    printf("\t\t-w number of words\n");
+    printf("\t\t-m number of characters\n");
+
     return EXIT_SUCCESS;
 }
