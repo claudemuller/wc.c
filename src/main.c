@@ -79,7 +79,9 @@ int main(int argc, char** argv)
 
     default: {
         printf("\t%zu %s\n", count_by_byte(fp), fname);
+        rewind(fp);
         printf("\t%zu %s\n", count_by_line(fp), fname);
+        rewind(fp);
         printf("\t%zu %s\n", count_by_word(fp), fname);
     } break;
     }
