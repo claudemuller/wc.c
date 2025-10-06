@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@ typedef enum {
 size_t count_by_byte(FILE* fp);
 size_t read_byte_for_byte(FILE* fp);
 size_t count_by_line(FILE* fp);
+size_t count_by_word(FILE* fp);
 int print_usage(void);
 
 int main(int argc, char** argv)
@@ -50,7 +52,7 @@ int main(int argc, char** argv)
     } break;
 
     case MODE_WORD: {
-        // printf("\t%zu %s\n", read_buffered(fp), fname);
+        printf("\t%zu %s\n", count_by_word(fp), fname);
     } break;
 
     default:
@@ -104,6 +106,31 @@ size_t count_by_line(FILE* fp)
     free(buf);
 
     return tot_lines;
+}
+
+size_t count_by_word(FILE* fp)
+{
+    size_t chunk_size = 1024;
+    char* buf = (char*)malloc(chunk_size);
+    if (!buf) {
+        perror("Failed to allocate memory");
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    size_t n_read, tot_words = 0;
+    char c, prev_c;
+
+    while ((c = fgetc(fp)) != EOF) {
+        if (isspace(c) && !isspace(prev_c)) {
+            tot_words++;
+        }
+        prev_c = c;
+    }
+
+    free(buf);
+
+    return tot_words;
 }
 
 size_t read_byte_for_byte(FILE* fp)
