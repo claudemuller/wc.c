@@ -20,15 +20,7 @@ typedef enum {
     MODE_COUNT,
 } Mode;
 
-typedef struct {
-    FILE* fp;
-    off_t file_start;
-    off_t file_end;
-    int thread_id;
-    Mode mode;
-} ThreadData;
-
-void count_default(FILE* fp, size_t* n_lines, size_t* n_words, size_t* n_bytes);
+int count_default(FILE* fp, size_t* n_lines, size_t* n_words, size_t* n_bytes);
 size_t count_by_byte(FILE* fp);
 size_t read_byte_for_byte(FILE* fp);
 size_t count_by_line(FILE* fp);
