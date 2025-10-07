@@ -17,14 +17,6 @@
  */
 int count_default(FILE* fp, size_t* tot_lines, size_t* tot_words, size_t* tot_chars)
 {
-    size_t chunk_size = 1024;
-    unsigned char* buf = (unsigned char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
     char c, prev_c;
 
     while ((c = fgetc(fp)) != EOF) {
@@ -107,15 +99,7 @@ size_t count_by_line(FILE* fp)
  */
 size_t count_by_word(FILE* fp)
 {
-    size_t chunk_size = 1024;
-    char* buf = (char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
-    size_t n_read, tot_words = 0;
+    size_t tot_words = 0;
     char c, prev_c;
 
     while ((c = fgetc(fp)) != EOF) {
@@ -124,8 +108,6 @@ size_t count_by_word(FILE* fp)
         }
         prev_c = c;
     }
-
-    free(buf);
 
     return tot_words;
 }
@@ -138,14 +120,6 @@ size_t count_by_word(FILE* fp)
  */
 size_t count_by_char(FILE* fp)
 {
-    size_t chunk_size = 1024;
-    char* buf = (char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
     size_t n_read, tot_chars = 0;
     char c;
 
@@ -153,26 +127,5 @@ size_t count_by_char(FILE* fp)
         tot_chars++;
     }
 
-    free(buf);
-
     return tot_chars;
-}
-
-/*
- * Return the number in bytes of a file, counting byte by byte.
- *
- * \param fp File pointer
- * \return The number of bytes
- */
-size_t read_byte_for_byte(FILE* fp)
-{
-    size_t tot_bytes = 0;
-    int ch;
-
-    while ((ch = fgetc(fp)) != EOF) {
-        unsigned char byte = (unsigned char)ch;
-        tot_bytes++;
-    }
-
-    return tot_bytes;
 }

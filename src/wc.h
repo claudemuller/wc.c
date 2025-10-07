@@ -22,10 +22,8 @@ typedef enum {
 
 int count_default(FILE* fp, size_t* n_lines, size_t* n_words, size_t* n_bytes);
 size_t count_by_byte(FILE* fp);
-size_t read_byte_for_byte(FILE* fp);
 size_t count_by_line(FILE* fp);
 size_t count_by_word(FILE* fp);
 size_t count_by_char(FILE* fp);
-void* thread_func(void* arg);
 
 #endif // !WC_H_
