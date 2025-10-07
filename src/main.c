@@ -1,23 +1,9 @@
-#include <ctype.h>
+#include "wc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum {
-    MODE_DEFAULT,
-    MODE_BYTE,
-    MODE_LINE,
-    MODE_WORD,
-    MODE_CHAR,
-    MODE_COUNT,
-} Mode;
-
-size_t count_by_byte(FILE* fp);
-size_t read_byte_for_byte(FILE* fp);
-size_t count_by_line(FILE* fp);
-size_t count_by_word(FILE* fp);
-size_t count_by_char(FILE* fp);
 int print_usage(void);
 
 int main(int argc, char** argv)
@@ -34,7 +20,8 @@ int main(int argc, char** argv)
 
         if (fname[0] == '-' && strlen(fname) == 2) {
             fprintf(stderr, "Invalid filename.\n");
-            return print_usage();
+            print_usage();
+            return EXIT_FAILURE;
         }
 
         mode = MODE_DEFAULT;
@@ -78,122 +65,17 @@ int main(int argc, char** argv)
     } break;
 
     default: {
-        printf("\t%zu %s\n", count_by_byte(fp), fname);
-        rewind(fp);
-        printf("\t%zu %s\n", count_by_line(fp), fname);
-        rewind(fp);
-        printf("\t%zu %s\n", count_by_word(fp), fname);
+        size_t n_lines = 0, n_words = 0, n_bytes = 0;
+
+        count_default(fp, &n_lines, &n_words, &n_bytes);
+
+        printf("%6zu %6zu %6zu %s\n", n_lines, n_words, n_bytes, fname);
     } break;
     }
 
     fclose(fp);
 
     return EXIT_SUCCESS;
-}
-
-size_t count_by_byte(FILE* fp)
-{
-    size_t chunk_size = 1024;
-    unsigned char* buf = (unsigned char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
-    size_t n_read, tot_bytes = 0;
-    while ((n_read = fread(buf, 1, chunk_size, fp)) > 0) {
-        tot_bytes += n_read;
-    }
-    if (ferror(fp)) {
-        perror("Failed reading data from file");
-    }
-
-    free(buf);
-
-    return tot_bytes;
-}
-
-size_t count_by_line(FILE* fp)
-{
-    size_t chunk_size = 1024;
-    char* buf = (char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
-    size_t n_read, tot_lines = 0;
-
-    while (fgets(buf, chunk_size, fp)) {
-        tot_lines++;
-    }
-
-    free(buf);
-
-    return tot_lines;
-}
-
-size_t count_by_word(FILE* fp)
-{
-    size_t chunk_size = 1024;
-    char* buf = (char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
-    size_t n_read, tot_words = 0;
-    char c, prev_c;
-
-    while ((c = fgetc(fp)) != EOF) {
-        if (isspace(c) && !isspace(prev_c)) {
-            tot_words++;
-        }
-        prev_c = c;
-    }
-
-    free(buf);
-
-    return tot_words;
-}
-
-// TODO: confirm output with wc
-size_t count_by_char(FILE* fp)
-{
-    size_t chunk_size = 1024;
-    char* buf = (char*)malloc(chunk_size);
-    if (!buf) {
-        perror("Failed to allocate memory");
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
-
-    size_t n_read, tot_chars = 0;
-    char c;
-
-    while ((c = fgetc(fp)) != EOF) {
-        tot_chars++;
-    }
-
-    free(buf);
-
-    return tot_chars;
-}
-
-size_t read_byte_for_byte(FILE* fp)
-{
-    size_t tot_bytes = 0;
-    int ch;
-
-    while ((ch = fgetc(fp)) != EOF) {
-        unsigned char byte = (unsigned char)ch;
-        tot_bytes++;
-    }
-
-    return tot_bytes;
 }
 
 int print_usage(void)

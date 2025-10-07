@@ -1,1 +1,1 @@
-clang++ -g -o bin\wc.exe src\*.c
+clang -g -o bin\wc.exe src\*.c

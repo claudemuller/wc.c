@@ -1,0 +1,21 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "codelldb",
+			"request": "launch",
+			"name": "C",
+			"stdio": [
+				"data/data.txt",
+				null
+			],
+			"args": [],
+			"preLaunchTask": "Compile",
+			"postDebugTask": "Clean",
+			"expressions": "native",
+			"program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
+			"runInTerminal": false,
+			"stopAtEntry": false
+		}
+	]
+}
