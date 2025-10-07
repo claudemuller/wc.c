@@ -4,12 +4,46 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __WIN32
+#include <io.h>
+#include <stdio.h>
+#include <windows.h>
+
+int stdin_is_pipe_or_file_win(void)
+{
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD type = GetFileType(h);
+
+    if (type == FILE_TYPE_PIPE) return 1; // pipe (including redirected file)
+    if (type == FILE_TYPE_DISK) return 1; // regular file
+    return 0;                             // console or unknown
+}
+#endif
+
+int stdin_is_pipe_or_file(void) {
+    struct stat st;
+    if (fstat(STDIN_FILENO, &st) == -1) {
+        perror("fstat");
+        return 0;               // treat as “no data”
+    }
+
+    /* S_ISFIFO – named pipe (FIFO) or pipe created by `|` */
+    /* S_ISREG  – regular file (e.g., redirected from a file)   */
+    return S_ISFIFO(st.st_mode) || S_ISREG(st.st_mode);
+}
+
 int print_usage(void);
 
 int main(int argc, char** argv)
 {
     if (argc < 2) {
         return print_usage();
+    }
+
+    char buf[1024];
+
+    while (fgets(buf, sizeof buf, stdin)) {
+        // TODO: handle stdin
     }
 
     const char* fname;
